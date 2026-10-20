@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taxigps App - GPS & Start</title>
+  <title>Taxigps App - Flexibel Starten</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -48,7 +48,6 @@
     }
     button:hover {
       background-color: #219150;
-      background-color: #219150;
     }
     #status {
       margin-top: 15px;
@@ -63,27 +62,22 @@
 </head>
 <body>
 
-  <h2>🚕 Taxigps - Rit Starten met GPS</h2>
+  <h2>🚕 Taxigps - Rit Starten</h2>
 
   <form id="taxiForm">
     <div class="form-group">
-      <label for="chauffeur">Chauffeur</label>
-      <input type="text" id="chauffeur" required placeholder="Naam chauffeur">
-    </div>
-
-    <div class="form-group">
-      <label for="afspraakTijd">Afspraak Datum & Tijd</label>
-      <input type="datetime-local" id="afspraakTijd" required>
+      <label for="afspraakTijd">Afspraak Datum & Tijd (Optioneel)</label>
+      <input type="datetime-local" id="afspraakTijd">
     </div>
 
     <div class="form-group">
       <label for="haaladres">Haaladres (Wordt automatisch ingevuld bij Start)</label>
-      <input type="text" id="haaladres" required placeholder="Klik op Start om GPS-adres op te halen">
+      <input type="text" id="haaladres" placeholder="Klik op Start om GPS-adres op te halen of vul handmatig in">
     </div>
 
     <div class="form-group">
       <label for="startTijd">Start Datum & Tijd (Wordt automatisch ingevuld bij Start)</label>
-      <input type="datetime-local" id="startTijd" required>
+      <input type="datetime-local" id="startTijd">
     </div>
 
     <button type="submit" id="startBtn">Start Rit & Verstuur</button>
@@ -101,56 +95,62 @@
       statusDiv.className = '';
       statusDiv.innerText = 'GPS locatie en tijd ophalen...';
 
-      // 1. Vul de huidige datum en tijd in bij startTijd
+      // 1. Vul de huidige datum en tijd automatisch in bij startTijd als deze leeg is
       const nu = new Date();
       nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
       const huidigeTijdStr = nu.toISOString().slice(0, 16);
-      document.getElementById('startTijd').value = huidigeTijdStr;
-
-      // 2. Haal de GPS-locatie op
-      if (!navigator.geolocation) {
-        statusDiv.className = 'error';
-        statusDiv.innerText = 'Geolokalisatie wordt niet ondersteund door jouw browser.';
-        return;
+      
+      let startTijdInput = document.getElementById('startTijd').value;
+      if (!startTijdInput) {
+        startTijdInput = huidigeTijdStr;
+        document.getElementById('startTijd').value = huidigeTijdStr;
       }
 
-      navigator.geolocation.getCurrentPosition(function(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+      let bestaandHaaladres = document.getElementById('haaladres').value;
 
-        statusDiv.innerText = 'Adres opzoeken via GPS coördinaten...';
+      // Als het haaladres al handmatig is ingevuld, direct versturen. Anders via GPS ophalen.
+      if (bestaandHaaladres.trim() !== '') {
+        verstuurNaarGoogleSheets(bestaandHaaladres, startTijdInput);
+      } else {
+        // 2. Haal de GPS-locatie op als het haaladres leeg is
+        if (!navigator.geolocation) {
+          verstuurNaarGoogleSheets('Geen GPS beschikbaar', startTijdInput);
+          return;
+        }
 
-        // Gebruik een openbare service (Nominatim) om coördinaten om te zetten naar een straatnaam/adres
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
-          .then(response => response.json())
-          .then(data => {
-            let straatadres = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
-            document.getElementById('haaladres').value = straatadres;
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
 
-            // 3. Verstuur alles naar Google Sheets
-            verstuurNaarGoogleSheets(straatadres, huidigeTijdStr);
-          })
-          .catch(() => {
-            // Als het opzoeken van het adres mislukt, vullen we ten minste de coördinaten in
-            let coordAdres = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-            document.getElementById('haaladres').value = coordAdres;
-            verstuurNaarGoogleSheets(coordAdres, huidigeTijdStr);
-          });
+          statusDiv.innerText = 'Adres opzoeken via GPS coördinaten...';
 
-      }, function(error) {
-        statusDiv.className = 'error';
-        statusDiv.innerText = 'Kon GPS-locatie niet ophalen: ' + error.message;
-      }, { enableHighAccuracy: true });
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
+            .then(response => response.json())
+            .then(data => {
+              let straatadres = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
+              document.getElementById('haaladres').value = straatadres;
+              verstuurNaarGoogleSheets(straatadres, startTijdInput);
+            })
+            .catch(() => {
+              let coordAdres = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+              document.getElementById('haaladres').value = coordAdres;
+              verstuurNaarGoogleSheets(coordAdres, startTijdInput);
+            });
+
+        }, function() {
+          // Als GPS weigert of faalt, gewoon opslaan zonder GPS foutmelding te blokkeren
+          verstuurNaarGoogleSheets('GPS niet opgehaald', startTijdInput);
+        }, { enableHighAccuracy: true });
+      }
     });
 
     function verstuurNaarGoogleSheets(haaladres, startTijd) {
       const statusDiv = document.getElementById('status');
       
       const payload = {
-        chauffeur: document.getElementById('chauffeur').value,
-        afspraakTijd: document.getElementById('afspraakTijd').value,
-        haaladres: haaladres,
-        startTijd: startTijd
+        afspraakTijd: document.getElementById('afspraakTijd').value || '',
+        haaladres: haaladres || '',
+        startTijd: startTijd || ''
       };
 
       fetch(SCRIPT_URL, {
@@ -163,7 +163,7 @@
       })
       .then(() => {
         statusDiv.className = 'success';
-        statusDiv.innerText = 'Rit succesvol gestart, GPS-adres opgehaald en opgeslagen!';
+        statusDiv.innerText = 'Rit succesvol opgeslagen!';
         document.getElementById('taxiForm').reset();
       })
       .catch(error => {

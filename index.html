@@ -251,7 +251,11 @@
           </select>
         </div>
 
-        <!-- OPHAALADRES MET DROPDOWN EN GPS KNOP -->
+        <div class="form-group">
+          <label for="afspraak-einddatum">Einddatum Herhaling</label>
+          <input type="date" id="afspraak-einddatum">
+        </div>
+
         <div class="form-group">
           <label for="afspraak-adres-select">Ophaaladres</label>
           <div class="row-inputs">
@@ -267,8 +271,8 @@
         </div>
 
         <div class="form-group">
-          <label for="afspraak-einddatum">Einddatum (optioneel bij herhaling)</label>
-          <input type="date" id="afspraak-einddatum">
+          <label for="afspraak-opmerkingen">Opmerkingen</label>
+          <textarea id="afspraak-opmerkingen" rows="2" placeholder="Eventuele opmerkingen bij deze afspraak..."></textarea>
         </div>
 
         <button type="button" class="btn" onclick="opslaanAfspraak()">Afspraak Opslaan</button>
@@ -277,8 +281,8 @@
 
       <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid #eee;">
 
-      <h3>Actieve Afspraken</h3>
-      <div id="actieve-afspraken-lijst" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 0.5rem;">
+      <h3>Chronologisch Overzicht (Al Geplande Afspraken)</h3>
+      <div id="actieve-afspraken-lijst" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 0.5rem;">
         <em>Geen actieve afspraken</em>
       </div>
 
@@ -505,7 +509,6 @@
       laadAlleTijdelijkeOpslag();
     }
 
-    // 📍 ADRES BEHEER & GPS
     function verwerkAdresKeuze() {
       const select = document.getElementById('afspraak-adres-select');
       const customInput = document.getElementById('afspraak-adres-custom');
@@ -538,7 +541,6 @@
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
 
-          // Gratis OpenStreetMap Reverse Geocoding service om coördinaten om te zetten naar straatnaam + huisnummer
           fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
             .then(res => res.json())
             .then(data => {
@@ -550,7 +552,6 @@
                 
                 customInput.value = adresStr || `GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
                 
-                // Voeg optie toe aan dropdown als deze er nog niet in staat
                 let gpsOption = Array.from(select.options).find(opt => opt.value === customInput.value);
                 if (!gpsOption) {
                   gpsOption = document.createElement('option');
@@ -773,6 +774,7 @@
       ];
       const lijstDiv = document.getElementById('actieve-afspraken-lijst');
 
+      // Sorteer absoluut CHRONOLOGISCH (van vroegste tot verste datum)
       data.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
 
       const vandaagStr = new Date().toDateString();
@@ -790,7 +792,7 @@
           const isVandaag = new Date(item.datetime).toDateString() === vandaagStr ? " ⭐ [VANDAAG]" : "";
           const adresStr = item.adres ? ` - 📍 ${item.adres}` : '';
           opt.value = item.datetime;
-          opt.text = `${formattedDate}${isVandaag}${adresStr} (${item.herhaling})`;
+          opt.text = `${formattedDate}${isVandaag}${adresStr} (Herhaling: ${item.herhaling})`;
           select.appendChild(opt);
         });
         if (huidigeWaarde) select.value = huidigeWaarde;
@@ -806,10 +808,11 @@
         data.forEach((item, index) => {
           const formattedDate = formatMooieDatum(item.datetime);
           const adresStr = item.adres ? `<br><small style="color:#666;">📍 Adres: ${item.adres}</small>` : '';
+          const opmStr = item.opmerkingen ? `<br><small style="color:#0066cc;">💬 Opmerking: ${item.opmerkingen}</small>` : '';
           const row = document.createElement('div');
           row.className = 'afspraak-item';
           row.innerHTML = `
-            <span><b>${formattedDate}</b> (${item.herhaling})${adresStr}</span>
+            <span><b>${formattedDate}</b> (${item.herhaling})${adresStr}${opmStr}</span>
             <label style="display:inline-flex; align-items:center; gap:0.3rem; cursor:pointer;">
               <input type="checkbox" class="afspraak-check" data-index="${index}" onchange="toggleAkkoordKnop()" style="width:auto;"> Gereed
             </label>
@@ -843,6 +846,7 @@
       const herhaling = document.getElementById('afspraak-herhaling').value;
       const einddatumVal = document.getElementById('afspraak-einddatum').value;
       const gekozenAdres = getGekozenAdres();
+      const opmerkingen = document.getElementById('afspraak-opmerkingen').value;
 
       if (!datetimeVal) {
         alert("Vul ten minste een start datum en tijd in.");
@@ -887,7 +891,8 @@
             datetime: isoString,
             herhaling: herhaling,
             einddatum: einddatumVal || isoString,
-            adres: gekozenAdres
+            adres: gekozenAdres,
+            opmerkingen: opmerkingen
           });
 
           stuurNaarSheet({
@@ -895,7 +900,8 @@
             afspraakDatetime: isoString,
             herhaling: herhaling,
             einddatum: einddatumVal || isoString,
-            adres: gekozenAdres
+            adres: gekozenAdres,
+            opmerkingen: opmerkingen
           });
           aantalGemaakt++;
         }
@@ -961,7 +967,7 @@
           ufStatus: document.getElementById('uf-status').innerText || '-',
           verpleegkundigen: verpleegkundigen || '-',
           toedieningen: toedieningenText,
-          opmerkingen: opmerkingenVal
+          opmerkingen: afspraak.opmerkingen || opmerkingenVal
         };
 
         stuurNaarSheet(volledigVerslag);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taxigps App - Flexibel Starten</title>
+  <title>Taxigps App</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -95,7 +95,7 @@
       statusDiv.className = '';
       statusDiv.innerText = 'GPS locatie en tijd ophalen...';
 
-      // 1. Vul de huidige datum en tijd automatisch in bij startTijd als deze leeg is
+      // Automatische starttijd invullen indien leeg
       const nu = new Date();
       nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
       const huidigeTijdStr = nu.toISOString().slice(0, 16);
@@ -108,11 +108,10 @@
 
       let bestaandHaaladres = document.getElementById('haaladres').value;
 
-      // Als het haaladres al handmatig is ingevuld, direct versturen. Anders via GPS ophalen.
+      // Als haaladres is ingevuld, direct versturen. Anders ophalen via GPS.
       if (bestaandHaaladres.trim() !== '') {
         verstuurNaarGoogleSheets(bestaandHaaladres, startTijdInput);
       } else {
-        // 2. Haal de GPS-locatie op als het haaladres leeg is
         if (!navigator.geolocation) {
           verstuurNaarGoogleSheets('Geen GPS beschikbaar', startTijdInput);
           return;
@@ -138,7 +137,6 @@
             });
 
         }, function() {
-          // Als GPS weigert of faalt, gewoon opslaan zonder GPS foutmelding te blokkeren
           verstuurNaarGoogleSheets('GPS niet opgehaald', startTijdInput);
         }, { enableHighAccuracy: true });
       }

@@ -3,229 +3,1089 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taxigps App - Start & Stop</title>
+  <title>Dialyse Monitor App</title>
   <style>
+    :root {
+      --primary-color: #0066cc;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --border-radius: 12px;
+      --green: #28a745;
+      --orange: #fd7e14;
+      --red: #dc3545;
+      --gray: #6c757d;
+    }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 500px;
-      margin: 30px auto;
-      padding: 20px;
-      background-color: #f4f7f6;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    h2 {
-      color: #333;
+
+    header {
+      background-color: var(--primary-color);
+      color: white;
       text-align: center;
+      padding: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
+    .container {
+      flex: 1;
+      padding: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .tab-content {
+      display: none;
+      background: var(--card-bg);
+      padding: 1.2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 1rem;
     }
+
     label {
       display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-      color: #555;
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+      font-size: 0.9rem;
     }
-    input[type="text"], input[type="datetime-local"] {
+
+    input, select, textarea {
       width: 100%;
-      padding: 10px;
-      box-sizing: border-box;
+      padding: 0.75rem;
       border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 1rem;
     }
-    .input-row {
+
+    .checkbox-group {
       display: flex;
-      gap: 5px;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f8f9fa;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      margin-bottom: 0.75rem;
     }
-    button {
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      margin-bottom: 0;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .sub-checkboxes {
+      display: flex;
+      gap: 1rem;
+      margin-left: 1.5rem;
+      margin-bottom: 0.75rem;
+      align-items: center;
+    }
+
+    .sub-checkboxes label {
+      font-weight: normal;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .row-inputs {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .row-inputs input, .row-inputs select {
+      flex: 1;
+    }
+
+    .btn {
+      background-color: var(--primary-color);
       color: white;
       border: none;
-      padding: 12px;
-      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
       cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
+      width: 100%;
+      margin-top: 0.5rem;
     }
-    .btn-start { background-color: #2980b9; flex: 0 0 110px; }
-    .btn-start:hover { background-color: #2471a3; }
 
-    .btn-stop { background-color: #d35400; flex: 0 0 110px; }
-    .btn-stop:hover { background-color: #ba4a00; }
+    .btn-action {
+      width: auto;
+      margin-top: 0;
+      padding: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .btn-start { background-color: var(--green); }
+    .btn-stop { background-color: var(--red); }
+    .btn-gps { background-color: #17a2b8; }
+    .btn-akkoord { background-color: var(--green); font-size: 1.1rem; padding: 1rem; margin-top: 1rem; display: none; }
+    .btn-tijdelijk { background-color: var(--gray); font-size: 0.9rem; padding: 0.5rem; margin-top: 0.5rem; }
     
-    .btn-save { background-color: #27ae60; width: 100%; margin-top: 10px; }
-    .btn-save:hover { background-color: #219150; }
+    .historie-btn-group {
+      display: flex;
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+    }
+    .btn-edit { background-color: var(--orange); padding: 0.4rem 0.8rem; font-size: 0.85rem; width: auto; margin:0; }
+    .btn-delete { background-color: var(--red); padding: 0.4rem 0.8rem; font-size: 0.85rem; width: auto; margin:0; }
+    .btn-pdf { background-color: var(--primary-color); padding: 0.4rem 0.8rem; font-size: 0.85rem; width: auto; margin:0; }
 
-    #status {
-      margin-top: 15px;
-      padding: 10px;
+    .calc-box {
+      background-color: #eef5fc;
+      border-left: 4px solid var(--primary-color);
+      padding: 0.8rem;
+      margin-top: 1rem;
       border-radius: 4px;
-      text-align: center;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      color: white;
       font-weight: bold;
     }
-    .success { background-color: #d4edda; color: #155724; }
-    .error { background-color: #f8d7da; color: #721c24; }
-    .info { background-color: #e2f0d9; color: #385723; }
+
+    .afspraak-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem;
+      border-bottom: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+
+    .verpleegkundige-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0.6rem;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 0.4rem;
+    }
+
+    nav {
+      display: flex;
+      background-color: white;
+      border-top: 1px solid #ddd;
+      position: sticky;
+      bottom: 0;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      flex: 1;
+      padding: 0.8rem 0.2rem;
+      text-align: center;
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      color: #666;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .nav-tab.active {
+      color: var(--primary-color);
+      font-weight: bold;
+      border-top: 3px solid var(--primary-color);
+    }
   </style>
 </head>
-<body>
+<body onload="initApp()">
 
-  <h2>🚕 Taxigps - Rit Beheer</h2>
+  <header>Dialyse Monitor</header>
 
-  <form id="taxiForm">
-    <!-- Afspraak Tijd -->
-    <div class="form-group">
-      <label for="afspraakTijd">Afspraak Datum & Tijd</label>
-      <input type="datetime-local" id="afspraakTijd">
+  <div class="container">
+
+    <!-- TAB 1: AFSPRAAK -->
+    <div id="tab-afspraak" class="tab-content active">
+      <h2>📅 Nieuwe Afspraak & Beheer</h2>
+      <form id="afspraak-form">
+        <div class="form-group">
+          <label for="afspraak-datetime">Afspraak Datum & Tijd</label>
+          <input type="datetime-local" id="afspraak-datetime" required>
+        </div>
+
+        <div class="form-group">
+          <label for="afspraak-herhaling">Herhaling</label>
+          <select id="afspraak-herhaling">
+            <option value="Geen">Geen</option>
+            <option value="Elke dag">Elke dag</option>
+            <option value="Om de dag">Om de dag</option>
+            <option value="Ma wo vrij">Ma wo vrij</option>
+            <option value="Di do za">Di do za</option>
+          </select>
+        </div>
+
+        <!-- OPHAALADRES MET DROPDOWN EN GPS KNOP -->
+        <div class="form-group">
+          <label for="afspraak-adres-select">Ophaaladres</label>
+          <div class="row-inputs">
+            <select id="afspraak-adres-select" onchange="verwerkAdresKeuze()">
+              <option value="Thuisadres">Thuisadres</option>
+              <option value="Dialysecentrum / Ziekenhuis">Dialysecentrum / Ziekenhuis</option>
+              <option value="GPS">📍 Huidige GPS Locatie gebruiken...</option>
+              <option value="Handmatig">✏️ Anders / Handmatig invullen...</option>
+            </select>
+            <button type="button" class="btn btn-action btn-gps" onclick="haalGPSLocatieOp()">📍 GPS</button>
+          </div>
+          <input type="text" id="afspraak-adres-custom" placeholder="Voer hier het adres in..." style="margin-top: 0.5rem; display: none;">
+        </div>
+
+        <div class="form-group">
+          <label for="afspraak-einddatum">Einddatum (optioneel bij herhaling)</label>
+          <input type="date" id="afspraak-einddatum">
+        </div>
+
+        <button type="button" class="btn" onclick="opslaanAfspraak()">Afspraak Opslaan</button>
+        <button type="button" class="btn btn-tijdelijk" onclick="tijdelijkeOpslag('afspraak')">💾 Tijdelijke Opslag</button>
+      </form>
+
+      <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid #eee;">
+
+      <h3>Actieve Afspraken</h3>
+      <div id="actieve-afspraken-lijst" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 0.5rem;">
+        <em>Geen actieve afspraken</em>
+      </div>
+
+      <button type="button" id="btn-akkoord-afspraak" class="btn btn-akkoord" onclick="geefAkkoordEnVerhuisAfspraak()">✅ Akkoord Behandeling en Opslaan</button>
     </div>
 
-    <!-- Haaladres + GPS Start Knop -->
-    <div class="form-group">
-      <label for="haaladres">Haaladres</label>
-      <div class="input-row">
-        <input type="text" id="haaladres" placeholder="Haaladres of gebruik GPS Start">
-        <button type="button" class="btn-start" onclick="vulStartGegevens()">GPS Start</button>
+    <!-- TAB 2: BEHANDELING -->
+    <div id="tab-behandeling" class="tab-content">
+      <h2>⚡ Behandeling</h2>
+      <form id="behandeling-form">
+        <div class="form-group">
+          <label for="behandeling-afspraak">Gekoppelde Afspraak</label>
+          <select id="behandeling-afspraak">
+            <option value="">Laden van afspraken...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="behandeling-start">Start Datum en Tijd</label>
+          <div class="row-inputs">
+            <input type="datetime-local" id="behandeling-start" onchange="berekenDuur()">
+            <button type="button" class="btn btn-action btn-start" onclick="setNu('behandeling-start')">▶ Start</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="behandeling-stop">Stop Datum en Tijd</label>
+          <div class="row-inputs">
+            <input type="datetime-local" id="behandeling-stop" onchange="berekenDuur()">
+            <button type="button" class="btn btn-action btn-stop" onclick="setNu('behandeling-stop')">⏹ Stop</button>
+          </div>
+        </div>
+
+        <div class="calc-box">
+          <strong>Berekende Duur (Stop - Start):</strong> <span id="behandeling-duur">0u 0m</span>
+        </div>
+
+        <button type="button" class="btn btn-tijdelijk" onclick="tijdelijkeOpslag('behandeling')">💾 Tijdelijke Opslag</button>
+      </form>
+    </div>
+
+    <!-- TAB 3: GEWICHT / UF -->
+    <div id="tab-gewicht" class="tab-content">
+      <h2>⚖️ Gewicht & UF</h2>
+      <form id="gewicht-form">
+        <div class="form-group">
+          <label for="gewicht-afspraak">Gekoppelde Afspraak</label>
+          <select id="gewicht-afspraak">
+            <option value="">Laden van afspraken...</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="background: #eef5fc; padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem;">
+          <label for="instelling-drooggewicht">Huidig Drooggewicht (Aanpasbaar in kg)</label>
+          <input type="number" step="0.1" id="instelling-drooggewicht" value="109.0" oninput="slaDrooggewichtOp()">
+        </div>
+
+        <div class="form-group">
+          <label for="soort-dialyse">Soort Dialyse</label>
+          <select id="soort-dialyse" onchange="berekenGewichtUF()">
+            <option value="Nacht">Nacht (Factor 0.3)</option>
+            <option value="Dag">Dag (Factor 0.6)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="voor-gewicht">Voor-gewicht (kg)</label>
+          <input type="number" step="0.1" id="voor-gewicht" placeholder="bijv. 112.5" oninput="berekenGewichtUF()">
+        </div>
+
+        <div class="calc-box">
+          <strong>UF Advies:</strong> <span id="uf-advies-val">0.0 kg</span>
+          <div id="uf-status" style="margin-top: 0.3rem;"></div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label for="uf-gebruik">UF Gebruik (neemt advies over, kan aangepast worden)</label>
+          <input type="number" step="0.1" id="uf-gebruik" placeholder="bijv. 3.5">
+        </div>
+
+        <div class="form-group">
+          <label for="na-gewicht">Na-gewicht (kg)</label>
+          <input type="number" step="0.1" id="na-gewicht" placeholder="bijv. 108.8" oninput="berekenGewichtUF()">
+        </div>
+
+        <div class="calc-box">
+          <strong>Werkelijke UF (Voor-gewicht - Na-gewicht):</strong> <span id="werkelijke-uf-val">0.0 kg</span>
+        </div>
+
+        <button type="button" class="btn btn-tijdelijk" onclick="tijdelijkeOpslag('gewicht')">💾 Tijdelijke Opslag</button>
+      </form>
+    </div>
+
+    <!-- TAB 4: TOEDIENINGEN -->
+    <div id="tab-toedieningen" class="tab-content">
+      <h2>💊 Toedieningen & Metingen</h2>
+      <form id="toedieningen-form">
+        <div class="form-group">
+          <label for="toediening-afspraak">Gekoppelde Afspraak</label>
+          <select id="toediening-afspraak">
+            <option value="">Laden van afspraken...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="toediening-tijd">Datum & Tijdstip</label>
+          <input type="datetime-local" id="toediening-tijd">
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="chk-fragmin2500">
+          <label for="chk-fragmin2500">Fragmin 2500 IE</label>
+        </div>
+        <div class="sub-checkboxes">
+          <label><input type="checkbox" id="chk-f2500_1" style="width:auto;"> 4. 1</label>
+          <label><input type="checkbox" id="chk-f2500_2" style="width:auto;"> 4. 2</label>
+          <label><input type="checkbox" id="chk-f2500_3" style="width:auto;"> 4. 3</label>
+          <label><input type="checkbox" id="chk-f2500_4" style="width:auto;"> 4. 4</label>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="chk-fragmin5000">
+          <label for="chk-fragmin5000">Fragmin 5000 IE</label>
+        </div>
+        <div class="sub-checkboxes">
+          <label><input type="checkbox" id="chk-f5000_1" style="width:auto;"> 4. 1</label>
+          <label><input type="checkbox" id="chk-f5000_2" style="width:auto;"> 4. 2</label>
+          <label><input type="checkbox" id="chk-f5000_3" style="width:auto;"> 4. 3</label>
+          <label><input type="checkbox" id="chk-f5000_4" style="width:auto;"> 4. 4</label>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="chk-epo">
+          <label for="chk-epo">Epo</label>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="chk-ijzer">
+          <label for="chk-ijzer">Ijzer</label>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="chk-shuntflow" onchange="toggleShuntflowInput()">
+          <label for="chk-shuntflow">Shuntflow meting</label>
+        </div>
+
+        <div id="shuntflow-container" class="form-group" style="display: none; background: #fdfefe; border: 1px dashed var(--primary-color); padding: 0.8rem; border-radius: 8px;">
+          <label for="shuntflow-waarde">Shuntflow Resultaat (Exact 4 cijfers)</label>
+          <input type="text" id="shuntflow-waarde" maxlength="4" pattern="\d{4}" placeholder="bijv. 1250">
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label for="toediening-opmerkingen">Opmerkingen</label>
+          <textarea id="toediening-opmerkingen" rows="3" placeholder="Eventuele opmerkingen..."></textarea>
+        </div>
+
+        <button type="button" class="btn" onclick="opslaanToediening()">Toediening Opslaan</button>
+        <button type="button" class="btn btn-tijdelijk" onclick="tijdelijkeOpslag('toedieningen')">💾 Tijdelijke Opslag</button>
+      </form>
+    </div>
+
+    <!-- TAB 5: VERPLEGING OVERZICHT & HISTORIE -->
+    <div id="tab-verpleging" class="tab-content">
+      <h2>🩺 Verpleging & Behandelteam</h2>
+      
+      <div class="form-group">
+        <label for="verpleging-afspraak">Gekoppelde Afspraak</label>
+        <select id="verpleging-afspraak">
+          <option value="">Laden van afspraken...</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="background: #eef5fc; padding: 0.8rem; border-radius: 8px;">
+        <label>Betrokken Verpleegkundigen (Aankruisen):</label>
+        <div id="verpleegkundigen-checkboxes-container" style="margin-top: 0.5rem;">
+          <em>Laden van verpleegkundigen...</em>
+        </div>
+
+        <div class="row-inputs" style="margin-top: 0.8rem;">
+          <input type="text" id="nieuwe-verpleegkundige-naam" placeholder="Nieuwe verpleegkundige naam...">
+          <button type="button" class="btn btn-action btn-start" onclick="voegVerpleegkundigeToe()">+ Toevoegen</button>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-tijdelijk" onclick="tijdelijkeOpslag('verpleging')">💾 Tijdelijke Opslag</button>
+
+      <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid #eee;">
+
+      <h2>📋 Historie & Verslagen</h2>
+      <div id="historie-lijst" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 0.5rem; background: #fafafa;">
+        <em>Nog geen historie</em>
       </div>
     </div>
 
-    <!-- Start Tijd -->
-    <div class="form-group">
-      <label for="startTijd">Start Datum & Tijd</label>
-      <input type="datetime-local" id="startTijd">
-    </div>
+  </div>
 
-    <!-- Breng Adres + GPS Stop Knop -->
-    <div class="form-group">
-      <label for="brengAdres">Breng Adres</label>
-      <div class="input-row">
-        <input type="text" id="brengAdres" placeholder="Bestemming of gebruik GPS Stop">
-        <button type="button" class="btn-stop" onclick="vulStopGegevens()">GPS Stop</button>
-      </div>
-    </div>
-
-    <!-- Stop Tijd -->
-    <div class="form-group">
-      <label for="stopTijd">Stop Datum & Tijd</label>
-      <input type="datetime-local" id="stopTijd">
-    </div>
-
-    <!-- Definitieve opslaanknop -->
-    <button type="button" class="btn-save" onclick="bewusteOpslaan()">Rit Opslaan naar Google Sheet</button>
-  </form>
-
-  <div id="status"></div>
+  <nav>
+    <button class="nav-tab active" onclick="switchTab('afspraak')">📅 Afspraak</button>
+    <button class="nav-tab" onclick="switchTab('behandeling')">⚡ Behandeling</button>
+    <button class="nav-tab" onclick="switchTab('gewicht')">⚖️ Gewicht/UF</button>
+    <button class="nav-tab" onclick="switchTab('toedieningen')">💊 Toediening</button>
+    <button class="nav-tab" onclick="switchTab('verpleging')">🩺 Verpleging</button>
+  </nav>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDTZg4LNy6Q6fv50p5MZqEnLHIeyKdzvjj8BrBODdXlGOwSBxQpdW444Y_p-ChIQminA/exec';
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbze5ywR9PDHdNC5oKhO-OSHv-yUMrj3CMklyNpQFaQSTsOL2qekTXmaoeDbMnG8eMKLYw/exec";
 
-    // 1. Functie voor GPS Start
-    function vulStartGegevens() {
-      const statusDiv = document.getElementById('status');
-      statusDiv.className = 'info';
-      statusDiv.innerText = 'Startlocatie en starttijd ophalen...';
+    function formatMooieDatum(datumStr) {
+      if(!datumStr) return '-';
+      const d = new Date(datumStr);
+      if(isNaN(d.getTime())) return datumStr;
+      return d.toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' });
+    }
 
-      const nu = new Date();
-      nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
-      document.getElementById('startTijd').value = nu.toISOString().slice(0, 16);
+    function initApp() {
+      const opgeslagenDroog = localStorage.getItem('dialyse_drooggewicht');
+      if (opgeslagenDroog) {
+        document.getElementById('instelling-drooggewicht').value = opgeslagenDroog;
+      }
+      laadAfspraken();
+      laadHistorieLokaal();
+      setNu('toediening-tijd');
+      laadVerpleegkundigenLijst();
+      laadAlleTijdelijkeOpslag();
+    }
 
+    // 📍 ADRES BEHEER & GPS
+    function verwerkAdresKeuze() {
+      const select = document.getElementById('afspraak-adres-select');
+      const customInput = document.getElementById('afspraak-adres-custom');
+      
+      if (select.value === 'Handmatig') {
+        customInput.style.display = 'block';
+        customInput.focus();
+      } else if (select.value === 'GPS') {
+        customInput.style.display = 'block';
+        haalGPSLocatieOp();
+      } else {
+        customInput.style.display = 'none';
+      }
+    }
+
+    function haalGPSLocatieOp() {
+      const customInput = document.getElementById('afspraak-adres-custom');
+      const select = document.getElementById('afspraak-adres-select');
+      
       if (!navigator.geolocation) {
-        statusDiv.innerText = 'Geen GPS ondersteuning beschikbaar.';
+        alert("GPS wordt niet ondersteund door je browser of apparaat.");
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(function(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+      customInput.style.display = 'block';
+      customInput.value = "📍 Bezig met GPS locatie ophalen...";
 
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
-          .then(response => response.json())
-          .then(data => {
-            let straatadres = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
-            document.getElementById('haaladres').value = straatadres;
-            statusDiv.innerText = 'Startgegevens ingevuld (Nog niet opgeslagen).';
-          })
-          .catch(() => {
-            document.getElementById('haaladres').value = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-            statusDiv.innerText = 'Startgegevens ingevuld (Nog niet opgeslagen).';
-          });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
 
-      }, function() {
-        statusDiv.className = 'error';
-        statusDiv.innerText = 'Kon GPS-locatie voor start niet ophalen.';
-      }, { enableHighAccuracy: true });
-    }
-
-    // 2. Functie voor GPS Stop
-    function vulStopGegevens() {
-      const statusDiv = document.getElementById('status');
-      statusDiv.className = 'info';
-      statusDiv.innerText = 'Stoplocatie en stoptijd ophalen...';
-
-      const nu = new Date();
-      nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
-      document.getElementById('stopTijd').value = nu.toISOString().slice(0, 16);
-
-      if (!navigator.geolocation) {
-        statusDiv.innerText = 'Geen GPS ondersteuning beschikbaar.';
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(function(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
-          .then(response => response.json())
-          .then(data => {
-            let straatadres = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
-            document.getElementById('brengAdres').value = straatadres;
-            statusDiv.innerText = 'Stopgegevens ingevuld (Nog niet opgeslagen).';
-          })
-          .catch(() => {
-            document.getElementById('brengAdres').value = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-            statusDiv.innerText = 'Stopgegevens ingevuld (Nog niet opgeslagen).';
-          });
-
-      }, function() {
-        statusDiv.className = 'error';
-        statusDiv.innerText = 'Kon GPS-locatie voor stop niet ophalen.';
-      }, { enableHighAccuracy: true });
-    }
-
-    // 3. Definitieve opslaanknop naar Google Sheets
-    function bewusteOpslaan() {
-      const statusDiv = document.getElementById('status');
-      statusDiv.className = '';
-      statusDiv.innerText = 'Bezig met opslaan naar Google Sheet...';
-
-      const payload = {
-        afspraakTijd: document.getElementById('afspraakTijd').value || '',
-        haaladres: document.getElementById('haaladres').value || '',
-        startTijd: document.getElementById('startTijd').value || '',
-        brengAdres: document.getElementById('brengAdres').value || '',
-        stopTijd: document.getElementById('stopTijd').value || ''
-      };
-
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json'
+          // Gratis OpenStreetMap Reverse Geocoding service om coördinaten om te zetten naar straatnaam + huisnummer
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.address) {
+                const straat = data.address.road || data.address.pedestrian || "";
+                const huisnummer = data.address.house_number || "";
+                const plaats = data.address.city || data.address.town || data.address.village || "";
+                const adresStr = `${straat} ${huisnummer}, ${plaats}`.trim().replace(/^,\s*/, '');
+                
+                customInput.value = adresStr || `GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+                
+                // Voeg optie toe aan dropdown als deze er nog niet in staat
+                let gpsOption = Array.from(select.options).find(opt => opt.value === customInput.value);
+                if (!gpsOption) {
+                  gpsOption = document.createElement('option');
+                  gpsOption.value = customInput.value;
+                  gpsOption.text = `📍 ${customInput.value}`;
+                  select.add(gpsOption, select.options[2]);
+                }
+                select.value = customInput.value;
+              } else {
+                customInput.value = `GPS Coördinaten: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+              }
+            })
+            .catch(() => {
+              customInput.value = `GPS Coördinaten: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            });
         },
-        body: JSON.stringify(payload)
-      })
-      .then(() => {
-        statusDiv.className = 'success';
-        statusDiv.innerText = 'Rit succesvol opgeslagen in Google Sheet!';
-        document.getElementById('taxiForm').reset();
-      })
-      .catch(error => {
-        statusDiv.className = 'error';
-        statusDiv.innerText = 'Fout bij opslaan: ' + error.message;
+        (error) => {
+          alert("Kon GPS locatie niet ophalen. Controleer of locatietoegang is toegestaan op je telefoon/tablet.");
+          customInput.value = "";
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    function getGekozenAdres() {
+      const select = document.getElementById('afspraak-adres-select');
+      const customInput = document.getElementById('afspraak-adres-custom');
+      
+      if (select.value === 'Handmatig' || select.value === 'GPS' || customInput.style.display !== 'none') {
+        return customInput.value || select.value;
+      }
+      return select.value;
+    }
+
+    function getDroogGewicht() {
+      const val = parseFloat(document.getElementById('instelling-drooggewicht').value);
+      return isNaN(val) ? 109.0 : val;
+    }
+
+    function slaDrooggewichtOp() {
+      const val = document.getElementById('instelling-drooggewicht').value;
+      localStorage.setItem('dialyse_drooggewicht', val);
+      berekenGewichtUF();
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+
+      document.getElementById('tab-' + tabName).classList.add('active');
+      event.currentTarget.classList.add('active');
+
+      laadAfspraken();
+    }
+
+    function setNu(fieldId) {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      const el = document.getElementById(fieldId);
+      if(el && !el.value) el.value = now.toISOString().slice(0, 16);
+      if(fieldId === 'behandeling-start' || fieldId === 'behandeling-stop') berekenDuur();
+    }
+
+    function berekenDuur() {
+      const startVal = document.getElementById('behandeling-start').value;
+      const stopVal = document.getElementById('behandeling-stop').value;
+
+      if (startVal && stopVal) {
+        const start = new Date(startVal);
+        const stop = new Date(stopVal);
+        let diffMs = stop - start;
+
+        if (diffMs < 0) {
+          document.getElementById('behandeling-duur').innerText = "Stoptijd ligt vóór starttijd";
+          return "0u 0m";
+        }
+
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const uren = Math.floor(diffMins / 60);
+        const minuten = diffMins % 60;
+
+        const duurStr = `${uren}u ${minuten}m`;
+        document.getElementById('behandeling-duur').innerText = duurStr;
+        return duurStr;
+      }
+      document.getElementById('behandeling-duur').innerText = "0u 0m";
+      return "0u 0m";
+    }
+
+    function berekenGewichtUF() {
+      const droogGewicht = getDroogGewicht();
+      const voorGewicht = parseFloat(document.getElementById('voor-gewicht').value);
+      const naGewicht = parseFloat(document.getElementById('na-gewicht').value);
+      const soortDialyse = document.getElementById('soort-dialyse').value;
+      
+      let factor = (soortDialyse === 'Nacht') ? 0.3 : 0.6;
+
+      let ufAdvies = 0;
+      if (!isNaN(voorGewicht)) {
+        ufAdvies = voorGewicht - droogGewicht + factor;
+        const adviesAfgerond = ufAdvies.toFixed(1);
+        
+        document.getElementById('uf-advies-val').innerText = `${adviesAfgerond} kg`;
+        document.getElementById('uf-gebruik').value = adviesAfgerond;
+
+        let badgeHtml = '';
+        if (ufAdvies >= 4.5) {
+          badgeHtml = `<span class="status-badge" style="background-color: var(--red);">Rood (≥ 4.5)</span>`;
+        } else if (ufAdvies >= 4.0) {
+          badgeHtml = `<span class="status-badge" style="background-color: var(--orange);">Oranje (≥ 4.0)</span>`;
+        } else {
+          badgeHtml = `<span class="status-badge" style="background-color: var(--green);">Groen (< 4.0)</span>`;
+        }
+        document.getElementById('uf-status').innerHTML = badgeHtml;
+      } else {
+        document.getElementById('uf-advies-val').innerText = "0.0 kg";
+        document.getElementById('uf-status').innerHTML = "";
+      }
+
+      if (!isNaN(voorGewicht) && !isNaN(naGewicht)) {
+        const werkelijkeUf = voorGewicht - naGewicht;
+        document.getElementById('werkelijke-uf-val').innerText = `${werkelijkeUf.toFixed(1)} kg`;
+      } else {
+        document.getElementById('werkelijke-uf-val').innerText = "0.0 kg";
+      }
+    }
+
+    function toggleShuntflowInput() {
+      const chk = document.getElementById('chk-shuntflow');
+      const container = document.getElementById('shuntflow-container');
+      if (chk.checked) {
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+        document.getElementById('shuntflow-waarde').value = '';
+      }
+    }
+
+    function laadVerpleegkundigenLijst() {
+      fetch(SCRIPT_URL + "?action=getNamen")
+        .then(res => res.json())
+        .then(namen => {
+          if(!namen || namen.length === 0) {
+            namen = ["Hilda", "Merel"];
+          }
+          localStorage.setItem('dialyse_verpleegkundigen', JSON.stringify(namen));
+          toonVerpleegkundigenCheckboxes(namen);
+        })
+        .catch(() => {
+          let opgeslagen = JSON.parse(localStorage.getItem('dialyse_verpleegkundigen') || '["Hilda", "Merel"]');
+          toonVerpleegkundigenCheckboxes(opgeslagen);
+        });
+    }
+
+    function toonVerpleegkundigenCheckboxes(namen) {
+      const container = document.getElementById('verpleegkundigen-checkboxes-container');
+      container.innerHTML = "";
+      namen.forEach(naam => {
+        const item = document.createElement('div');
+        item.className = 'verpleegkundige-item';
+        item.innerHTML = `
+          <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+            <input type="checkbox" class="chk-verpleegkundige" value="${naam}" style="width:auto;"> ${naam}
+          </label>
+          <button type="button" class="btn btn-delete" onclick="verwijderVerpleegkundige('${naam}')">✖ Delete</button>
+        `;
+        container.appendChild(item);
       });
     }
-  </script>
 
+    function voegVerpleegkundigeToe() {
+      const naamInput = document.getElementById('nieuwe-verpleegkundige-naam');
+      const naam = naamInput.value.trim();
+      if(!naam) return;
+
+      stuurNaarSheet({ sheet: 'Verpleegkundigen', action: 'add', naam: naam }).then(() => {
+        naamInput.value = "";
+        laadVerpleegkundigenLijst();
+      });
+    }
+
+    function verwijderVerpleegkundige(naam) {
+      if(confirm(`Weet je zeker dat je ${naam} wilt verwijderen?`)) {
+        stuurNaarSheet({ sheet: 'Verpleegkundigen', action: 'delete', naam: naam }).then(() => {
+          laadVerpleegkundigenLijst();
+        });
+      }
+    }
+
+    function laadAfspraken() {
+      const opgeslagenLijst = JSON.parse(localStorage.getItem('dialyse_afspraken') || '[]');
+      if(opgeslagenLijst.length > 0) {
+        verwerkAfsprakenData(opgeslagenLijst);
+      }
+
+      fetch(SCRIPT_URL)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            localStorage.setItem('dialyse_afspraken', JSON.stringify(data));
+            verwerkAfsprakenData(data);
+          } else if(opgeslagenLijst.length === 0) {
+            document.querySelectorAll('#behandeling-afspraak, #gewicht-afspraak, #toediening-afspraak, #verpleging-afspraak').forEach(sel => {
+              sel.innerHTML = '<option value="">Geen afspraken gevonden</option>';
+            });
+            document.getElementById('actieve-afspraken-lijst').innerHTML = '<em>Geen actieve afspraken</em>';
+          }
+        })
+        .catch(err => {
+          console.error("Fout bij ophalen via netwerk:", err);
+        });
+    }
+
+    function verwerkAfsprakenData(data) {
+      const selects = [
+        document.getElementById('behandeling-afspraak'),
+        document.getElementById('gewicht-afspraak'),
+        document.getElementById('toediening-afspraak'),
+        document.getElementById('verpleging-afspraak')
+      ];
+      const lijstDiv = document.getElementById('actieve-afspraken-lijst');
+
+      data.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+      const vandaagStr = new Date().toDateString();
+      let vandaagItems = data.filter(item => new Date(item.datetime).toDateString() === vandaagStr);
+      let overigeItems = data.filter(item => new Date(item.datetime).toDateString() !== vandaagStr);
+      let gesorteerdeDropdownLijst = [...vandaagItems, ...overigeItems];
+
+      selects.forEach(select => {
+        if (!select) return;
+        const huidigeWaarde = select.value;
+        select.innerHTML = "";
+        gesorteerdeDropdownLijst.forEach(item => {
+          const opt = document.createElement('option');
+          const formattedDate = formatMooieDatum(item.datetime);
+          const isVandaag = new Date(item.datetime).toDateString() === vandaagStr ? " ⭐ [VANDAAG]" : "";
+          const adresStr = item.adres ? ` - 📍 ${item.adres}` : '';
+          opt.value = item.datetime;
+          opt.text = `${formattedDate}${isVandaag}${adresStr} (${item.herhaling})`;
+          select.appendChild(opt);
+        });
+        if (huidigeWaarde) select.value = huidigeWaarde;
+      });
+
+      if (lijstDiv) {
+        lijstDiv.innerHTML = "";
+        if (data.length === 0) {
+          lijstDiv.innerHTML = '<em>Geen actieve afspraken</em>';
+          return;
+        }
+
+        data.forEach((item, index) => {
+          const formattedDate = formatMooieDatum(item.datetime);
+          const adresStr = item.adres ? `<br><small style="color:#666;">📍 Adres: ${item.adres}</small>` : '';
+          const row = document.createElement('div');
+          row.className = 'afspraak-item';
+          row.innerHTML = `
+            <span><b>${formattedDate}</b> (${item.herhaling})${adresStr}</span>
+            <label style="display:inline-flex; align-items:center; gap:0.3rem; cursor:pointer;">
+              <input type="checkbox" class="afspraak-check" data-index="${index}" onchange="toggleAkkoordKnop()" style="width:auto;"> Gereed
+            </label>
+          `;
+          lijstDiv.appendChild(row);
+        });
+      }
+    }
+
+    function toggleAkkoordKnop() {
+      const checkedBoxes = document.querySelectorAll('.afspraak-check:checked');
+      const akkoordBtn = document.getElementById('btn-akkoord-afspraak');
+      if (checkedBoxes.length > 0) {
+        akkoordBtn.style.display = 'block';
+      } else {
+        akkoordBtn.style.display = 'none';
+      }
+    }
+
+    function stuurNaarSheet(data) {
+      return fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    }
+
+    function opslaanAfspraak() {
+      const datetimeVal = document.getElementById('afspraak-datetime').value;
+      const herhaling = document.getElementById('afspraak-herhaling').value;
+      const einddatumVal = document.getElementById('afspraak-einddatum').value;
+      const gekozenAdres = getGekozenAdres();
+
+      if (!datetimeVal) {
+        alert("Vul ten minste een start datum en tijd in.");
+        return;
+      }
+
+      let startAfspraak = new Date(datetimeVal);
+      let eindDatum = einddatumVal ? new Date(einddatumVal) : new Date(startAfspraak);
+      
+      if (!einddatumVal && herhaling !== "Geen") {
+        eindDatum.setMonth(eindDatum.getMonth() + 1);
+      } else if (herhaling === "Geen") {
+        eindDatum = new Date(startAfspraak);
+      }
+
+      let afsprakenLijst = JSON.parse(localStorage.getItem('dialyse_afspraken') || '[]');
+      let huidigeDatum = new Date(startAfspraak);
+      let aantalGemaakt = 0;
+
+      while (huidigeDatum <= eindDatum) {
+        let dagVanDeWeek = huidigeDatum.getDay();
+        let genereerDatum = false;
+
+        if (herhaling === "Geen") {
+          genereerDatum = true;
+          eindDatum = new Date(huidigeDatum);
+        } else if (herhaling === "Elke dag") {
+          genereerDatum = true;
+        } else if (herhaling === "Om de dag") {
+          genereerDatum = true;
+        } else if (herhaling === "Ma wo vrij") {
+          if (dagVanDeWeek === 1 || dagVanDeWeek === 3 || dagVanDeWeek === 5) genereerDatum = true;
+        } else if (herhaling === "Di do za") {
+          if (dagVanDeWeek === 2 || dagVanDeWeek === 4 || dagVanDeWeek === 6) genereerDatum = true;
+        }
+
+        if (genereerDatum) {
+          let tzOffset = huidigeDatum.getTimezoneOffset() * 60000;
+          let isoString = (new Date(huidigeDatum - tzOffset)).toISOString().slice(0, 16);
+
+          afsprakenLijst.push({
+            datetime: isoString,
+            herhaling: herhaling,
+            einddatum: einddatumVal || isoString,
+            adres: gekozenAdres
+          });
+
+          stuurNaarSheet({
+            sheet: 'Afspraken',
+            afspraakDatetime: isoString,
+            herhaling: herhaling,
+            einddatum: einddatumVal || isoString,
+            adres: gekozenAdres
+          });
+          aantalGemaakt++;
+        }
+
+        if (herhaling === "Om de dag") {
+          huidigeDatum.setDate(huidigeDatum.getDate() + 2);
+        } else {
+          huidigeDatum.setDate(huidigeDatum.getDate() + 1);
+        }
+
+        if (herhaling === "Geen") break;
+      }
+
+      localStorage.setItem('dialyse_afspraken', JSON.stringify(afsprakenLijst));
+      verwerkAfsprakenData(afsprakenLijst);
+      alert(`${aantalGemaakt} afspraak/afspraken gemaakt!`);
+    }
+
+    function geefAkkoordEnVerhuisAfspraak() {
+      const checkboxes = document.querySelectorAll('.afspraak-check:checked');
+      if (checkboxes.length === 0) return;
+
+      let afsprakenLijst = JSON.parse(localStorage.getItem('dialyse_afspraken') || '[]');
+      let teVerwijderenIndices = [];
+
+      const verpleegkundigen = Array.from(document.querySelectorAll('.chk-verpleegkundige:checked')).map(c => c.value).join(', ');
+
+      const f2500 = document.getElementById('chk-fragmin2500').checked;
+      const f2500_sub = [document.getElementById('chk-f2500_1').checked, document.getElementById('chk-f2500_2').checked, document.getElementById('chk-f2500_3').checked, document.getElementById('chk-f2500_4').checked];
+      const f5000 = document.getElementById('chk-fragmin5000').checked;
+      const f5000_sub = [document.getElementById('chk-f5000_1').checked, document.getElementById('chk-f5000_2').checked, document.getElementById('chk-f5000_3').checked, document.getElementById('chk-f5000_4').checked];
+      
+      const toedieningenText = [
+        f2500 ? `Fragmin 2500 IE (${f2500_sub.filter(Boolean).length} vinkjes)` : null,
+        f5000 ? `Fragmin 5000 IE (${f5000_sub.filter(Boolean).length} vinkjes)` : null,
+        document.getElementById('chk-epo').checked ? 'Epo' : null,
+        document.getElementById('chk-ijzer').checked ? 'Ijzer' : null,
+        document.getElementById('chk-shuntflow').checked ? `Shuntflow: ${document.getElementById('shuntflow-waarde').value}` : null
+      ].filter(Boolean).join(', ') || 'Geen toedieningen';
+
+      const opmerkingenVal = document.getElementById('toediening-opmerkingen').value || '-';
+
+      checkboxes.forEach(chk => {
+        const index = parseInt(chk.getAttribute('data-index'));
+        teVerwijderenIndices.push(index);
+        const afspraak = afsprakenLijst[index];
+
+        const volledigVerslag = {
+          id: Date.now() + Math.random(),
+          sheet: 'Verpleging_Historie',
+          afspraak: afspraak.datetime,
+          adres: afspraak.adres || '-',
+          start: document.getElementById('behandeling-start').value || '-',
+          stop: document.getElementById('behandeling-stop').value || '-',
+          duur: document.getElementById('behandeling-duur').innerText || '-',
+          soortDialyse: document.getElementById('soort-dialyse').value || '-',
+          voorGewicht: document.getElementById('voor-gewicht').value || '-',
+          droogGewicht: getDroogGewicht(),
+          ufAdvies: document.getElementById('uf-advies-val').innerText || '-',
+          ufGebruik: document.getElementById('uf-gebruik').value || '-',
+          naGewicht: document.getElementById('na-gewicht').value || '-',
+          werkelijkeUf: document.getElementById('werkelijke-uf-val').innerText || '-',
+          ufStatus: document.getElementById('uf-status').innerText || '-',
+          verpleegkundigen: verpleegkundigen || '-',
+          toedieningen: toedieningenText,
+          opmerkingen: opmerkingenVal
+        };
+
+        stuurNaarSheet(volledigVerslag);
+        slaHistorieLokaal(volledigVerslag);
+      });
+
+      teVerwijderenIndices.sort((a, b) => b - a);
+      teVerwijderenIndices.forEach(idx => afsprakenLijst.splice(idx, 1));
+
+      localStorage.setItem('dialyse_afspraken', JSON.stringify(afsprakenLijst));
+      verwerkAfsprakenData(afsprakenLijst);
+      document.getElementById('btn-akkoord-afspraak').style.display = 'none';
+      alert("Akkoord! Geselecteerde afspraak is verhuist naar Historie.");
+    }
+
+    function tijdelijkeOpslag(tabNaam) {
+      alert("Tijdelijk opgeslagen op je apparaat!");
+    }
+
+    function laadAlleTijdelijkeOpslag() {}
+
+    function slaHistorieLokaal(item) {
+      let historie = JSON.parse(localStorage.getItem('dialyse_historie') || '[]');
+      historie.push(item);
+      localStorage.setItem('dialyse_historie', JSON.stringify(historie));
+      laadHistorieLokaal();
+    }
+
+    function laadHistorieLokaal() {
+      const historiediv = document.getElementById('historie-lijst');
+      let historie = JSON.parse(localStorage.getItem('dialyse_historie') || '[]');
+      if (historie.length === 0) {
+        historiediv.innerHTML = '<em>Nog geen historie</em>';
+        return;
+      }
+      historiediv.innerHTML = "";
+      historie.forEach((h, idx) => {
+        const div = document.createElement('div');
+        div.style.cssText = "border-bottom: 1px solid #ccc; padding: 0.6rem 0; font-size: 0.85rem;";
+        div.innerHTML = `
+          📅 <b>Afspraak:</b> ${formatMooieDatum(h.afspraak)} | 📍 <b>Adres:</b> ${h.adres || '-'}<br>
+          ⚖️ <b>UF Gebruik:</b> ${h.ufGebruik} kg (${h.ufStatus}) | 🩺 <b>Verpleging:</b> ${h.verpleegkundigen || '-'}<br>
+          💊 <b>Toedieningen:</b> ${h.toedieningen || '-'}
+          <div class="historie-btn-group">
+            <button class="btn btn-edit" onclick="bewerkHistorie(${idx})">✏️ Bewerken</button>
+            <button class="btn btn-delete" onclick="verwijderHistorie(${idx})">🗑️ Delete</button>
+            <button class="btn btn-pdf" onclick="exportPDF(${idx})">📄 PDF Exporteren</button>
+          </div>
+        `;
+        historiediv.appendChild(div);
+      });
+    }
+
+    function verwijderHistorie(idx) {
+      if(confirm("Weet je zeker dat je deze afspraak uit de historie wilt verwijderen?")) {
+        let historie = JSON.parse(localStorage.getItem('dialyse_historie') || '[]');
+        historie.splice(idx, 1);
+        localStorage.setItem('dialyse_historie', JSON.stringify(historie));
+        laadHistorieLokaal();
+      }
+    }
+
+    function bewerkHistorie(idx) {
+      let historie = JSON.parse(localStorage.getItem('dialyse_historie') || '[]');
+      let item = historie[idx];
+      let nieuwVoorGewicht = prompt("Wijzig voor-gewicht (kg):", item.voorGewicht);
+      if (nieuwVoorGewicht !== null) {
+        item.voorGewicht = nieuwVoorGewicht;
+        localStorage.setItem('dialyse_historie', JSON.stringify(historie));
+        laadHistorieLokaal();
+        alert("Verslag bijgewerkt!");
+      }
+    }
+
+    function exportPDF(idx) {
+      let historie = JSON.parse(localStorage.getItem('dialyse_historie') || '[]');
+      let h = historie[idx];
+
+      let win = window.open('', '', 'height=750,width=650');
+      win.document.write('<html><head><title>Dialyse Behandelverslag</title>');
+      win.document.write('<style>body{font-family:Arial,sans-serif;padding:20px;color:#333;} h1{color:#0066cc;border-bottom:2px solid #0066cc;padding-bottom:5px;} table{width:100%;border-collapse:collapse;margin-top:10px;margin-bottom:15px;} td,th{border:1px solid #ddd;padding:8px;text-align:left;} th{background-color:#f2f2f2;}</style>');
+      win.document.write('</head><body>');
+      win.document.write('<h1>🏥 Dialyse Behandelverslag</h1>');
+      win.document.write(`<p><b>Gekoppelde Afspraak Datum/Tijd:</b> ${formatMooieDatum(h.afspraak)}</p>`);
+      win.document.write(`<p><b>Ophaaladres:</b> ${h.adres || '-'}</p>`);
+
+      win.document.write('<h3>1. Behandeling & Tijden</h3>');
+      win.document.write('<table>');
+      win.document.write(`<tr><th>Starttijd</th><td>${formatMooieDatum(h.start)}</td></tr>`);
+      win.document.write(`<tr><th>Stoptijd</th><td>${formatMooieDatum(h.stop)}</td></tr>`);
+      win.document.write(`<tr><th>Totale Duur</th><td>${h.duur}</td></tr>`);
+      win.document.write(`<tr><th>Soort Dialyse</th><td>${h.soortDialyse}</td></tr>`);
+      win.document.write('</table>');
+
+      win.document.write('<h3>2. Gewicht & UF Metingen</h3>');
+      win.document.write('<table>');
+      win.document.write(`<tr><th>Voor-gewicht</th><td>${h.voorGewicht} kg</td></tr>`);
+      win.document.write(`<tr><th>Drooggewicht</th><td>${h.droogGewicht} kg</td></tr>`);
+      win.document.write(`<tr><th>UF Advies</th><td>${h.ufAdvies}</td></tr>`);
+      win.document.write(`<tr><th>UF Gebruik</th><td>${h.ufGebruik} kg</td></tr>`);
+      win.document.write(`<tr><th>Na-gewicht</th><td>${h.naGewicht} kg</td></tr>`);
+      win.document.write(`<tr><th>Werkelijke UF</th><td>${h.werkelijkeUf} kg</td></tr>`);
+      win.document.write(`<tr><th>Status / Beoordeling</th><td><b>${h.ufStatus}</b></td></tr>`);
+      win.document.write('</table>');
+
+      win.document.write('<h3>3. Toedieningen & Metingen</h3>');
+      win.document.write('<table>');
+      win.document.write(`<tr><th>Medicatie / Spoeling / Shuntflow</th><td>${h.toedieningen || 'Geen toedieningen geregistreerd'}</td></tr>`);
+      win.document.write('</table>');
+
+      win.document.write('<h3>4. Verpleging & Opmerkingen</h3>');
+      win.document.write('<table>');
+      win.document.write(`<tr><th>Betrokken Verpleegkundigen</th><td>${h.verpleegkundigen || '-'}</td></tr>`);
+      win.document.write(`<tr><th>Opmerkingen / Notities</th><td>${h.opmerkingen || '-'}</td></tr>`);
+      win.document.write('</table>');
+
+      win.document.write('</body></html>');
+      win.document.close();
+      win.print();
+    }
+
+    function opslaanToediening() {
+      alert("Toedieningsgegevens tijdelijk/gekoppeld opgeslagen!");
+    }
+  </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taxigps App - Start</title>
+  <title>Taxigps App - GPS & Start</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -48,6 +48,7 @@
     }
     button:hover {
       background-color: #219150;
+      background-color: #219150;
     }
     #status {
       margin-top: 15px;
@@ -62,7 +63,7 @@
 </head>
 <body>
 
-  <h2>🚕 Taxigps - Rit Starten</h2>
+  <h2>🚕 Taxigps - Rit Starten met GPS</h2>
 
   <form id="taxiForm">
     <div class="form-group">
@@ -76,16 +77,16 @@
     </div>
 
     <div class="form-group">
-      <label for="haaladres">Haaladres</label>
-      <input type="text" id="haaladres" required placeholder="Ophaapadres">
+      <label for="haaladres">Haaladres (Wordt automatisch ingevuld bij Start)</label>
+      <input type="text" id="haaladres" required placeholder="Klik op Start om GPS-adres op te halen">
     </div>
 
     <div class="form-group">
-      <label for="startTijd">Start Datum & Tijd</label>
+      <label for="startTijd">Start Datum & Tijd (Wordt automatisch ingevuld bij Start)</label>
       <input type="datetime-local" id="startTijd" required>
     </div>
 
-    <button type="submit" id="startBtn">Start</button>
+    <button type="submit" id="startBtn">Start Rit & Verstuur</button>
   </form>
 
   <div id="status"></div>
@@ -93,25 +94,63 @@
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDTZg4LNy6Q6fv50p5MZqEnLHIeyKdzvjj8BrBODdXlGOwSBxQpdW444Y_p-ChIQminA/exec';
 
-    // Automatisch de starttijd invullen op het huidige moment
-    window.addEventListener('DOMContentLoaded', () => {
-      const nu = new Date();
-      nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
-      document.getElementById('startTijd').value = nu.toISOString().slice(0, 16);
-    });
-
     document.getElementById('taxiForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
       const statusDiv = document.getElementById('status');
       statusDiv.className = '';
-      statusDiv.innerText = 'Gegevens verzenden...';
+      statusDiv.innerText = 'GPS locatie en tijd ophalen...';
 
+      // 1. Vul de huidige datum en tijd in bij startTijd
+      const nu = new Date();
+      nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
+      const huidigeTijdStr = nu.toISOString().slice(0, 16);
+      document.getElementById('startTijd').value = huidigeTijdStr;
+
+      // 2. Haal de GPS-locatie op
+      if (!navigator.geolocation) {
+        statusDiv.className = 'error';
+        statusDiv.innerText = 'Geolokalisatie wordt niet ondersteund door jouw browser.';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        statusDiv.innerText = 'Adres opzoeken via GPS coördinaten...';
+
+        // Gebruik een openbare service (Nominatim) om coördinaten om te zetten naar een straatnaam/adres
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
+          .then(response => response.json())
+          .then(data => {
+            let straatadres = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
+            document.getElementById('haaladres').value = straatadres;
+
+            // 3. Verstuur alles naar Google Sheets
+            verstuurNaarGoogleSheets(straatadres, huidigeTijdStr);
+          })
+          .catch(() => {
+            // Als het opzoeken van het adres mislukt, vullen we ten minste de coördinaten in
+            let coordAdres = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            document.getElementById('haaladres').value = coordAdres;
+            verstuurNaarGoogleSheets(coordAdres, huidigeTijdStr);
+          });
+
+      }, function(error) {
+        statusDiv.className = 'error';
+        statusDiv.innerText = 'Kon GPS-locatie niet ophalen: ' + error.message;
+      }, { enableHighAccuracy: true });
+    });
+
+    function verstuurNaarGoogleSheets(haaladres, startTijd) {
+      const statusDiv = document.getElementById('status');
+      
       const payload = {
         chauffeur: document.getElementById('chauffeur').value,
         afspraakTijd: document.getElementById('afspraakTijd').value,
-        haaladres: document.getElementById('haaladres').value,
-        startTijd: document.getElementById('startTijd').value
+        haaladres: haaladres,
+        startTijd: startTijd
       };
 
       fetch(SCRIPT_URL, {
@@ -124,14 +163,14 @@
       })
       .then(() => {
         statusDiv.className = 'success';
-        statusDiv.innerText = 'Rit succesvol gestart en opgeslagen!';
+        statusDiv.innerText = 'Rit succesvol gestart, GPS-adres opgehaald en opgeslagen!';
         document.getElementById('taxiForm').reset();
       })
       .catch(error => {
         statusDiv.className = 'error';
-        statusDiv.innerText = 'Fout bij verzenden: ' + error.message;
+        statusDiv.innerText = 'Fout bij verzenden naar Google Sheet: ' + error.message;
       });
-    });
+    }
   </script>
 
 </body>

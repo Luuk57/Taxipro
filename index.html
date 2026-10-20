@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taxigps App</title>
+  <title>Taxigps App - Rit Gegevens</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -62,7 +62,7 @@
 </head>
 <body>
 
-  <h2>🚕 Taxigps - Rit Starten</h2>
+  <h2>🚕 Taxigps - Rit Invoer</h2>
 
   <form id="taxiForm">
     <div class="form-group">
@@ -71,13 +71,23 @@
     </div>
 
     <div class="form-group">
-      <label for="haaladres">Haaladres (Wordt automatisch ingevuld bij Start)</label>
-      <input type="text" id="haaladres" placeholder="Klik op Start om GPS-adres op te halen of vul handmatig in">
+      <label for="haaladres">Haaladres (Auto GPS bij Start)</label>
+      <input type="text" id="haaladres" placeholder="Laat leeg voor GPS of vul handmatig in">
     </div>
 
     <div class="form-group">
-      <label for="startTijd">Start Datum & Tijd (Wordt automatisch ingevuld bij Start)</label>
+      <label for="startTijd">Start Datum & Tijd (Auto tijd bij Start)</label>
       <input type="datetime-local" id="startTijd">
+    </div>
+
+    <div class="form-group">
+      <label for="brengAdres">Breng Adres (Optioneel)</label>
+      <input type="text" id="brengAdres" placeholder="Bestemmingsadres">
+    </div>
+
+    <div class="form-group">
+      <label for="stopTijd">Stop Datum & Tijd (Optioneel)</label>
+      <input type="datetime-local" id="stopTijd">
     </div>
 
     <button type="submit" id="startBtn">Start Rit & Verstuur</button>
@@ -148,7 +158,9 @@
       const payload = {
         afspraakTijd: document.getElementById('afspraakTijd').value || '',
         haaladres: haaladres || '',
-        startTijd: startTijd || ''
+        startTijd: startTijd || '',
+        brengAdres: document.getElementById('brengAdres').value || '',
+        stopTijd: document.getElementById('stopTijd').value || ''
       };
 
       fetch(SCRIPT_URL, {

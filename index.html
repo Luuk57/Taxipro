@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taxigps App</title>
+  <title>Taxigps App - Start</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -27,7 +27,7 @@
       font-weight: bold;
       color: #555;
     }
-    input[type="text"], input[type="number"] {
+    input[type="text"], input[type="datetime-local"] {
       width: 100%;
       padding: 10px;
       box-sizing: border-box;
@@ -62,55 +62,61 @@
 </head>
 <body>
 
-  <h2>🚕 Taxigps - Rit Invoeren</h2>
+  <h2>🚕 Taxigps - Rit Starten</h2>
 
   <form id="taxiForm">
     <div class="form-group">
       <label for="chauffeur">Chauffeur</label>
-      <input type="text" id="chauffeur" required placeholder="Naam van de chauffeur">
+      <input type="text" id="chauffeur" required placeholder="Naam chauffeur">
     </div>
 
     <div class="form-group">
-      <label for="startlocatie">Startlocatie</label>
-      <input type="text" id="startlocatie" required placeholder="Vertrekadres">
+      <label for="afspraakTijd">Afspraak Datum & Tijd</label>
+      <input type="datetime-local" id="afspraakTijd" required>
     </div>
 
     <div class="form-group">
-      <label for="eindlocatie">Eindlocatie</label>
-      <input type="text" id="eindlocatie" required placeholder="Aankomstadres">
+      <label for="haaladres">Haaladres</label>
+      <input type="text" id="haaladres" required placeholder="Ophaapadres">
     </div>
 
     <div class="form-group">
-      <label for="afstand">Afstand (km)</label>
-      <input type="number" id="afstand" step="0.1" required placeholder="0.0">
+      <label for="startTijd">Start Datum & Tijd</label>
+      <input type="datetime-local" id="startTijd" required>
     </div>
 
-    <button type="submit">Rit Opslaan naar Google Sheet</button>
+    <button type="submit" id="startBtn">Start</button>
   </form>
 
   <div id="status"></div>
 
   <script>
-    // Jouw gekoppelde Apps Script Web App URL:
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDTZg4LNy6Q6fv50p5MZqEnLHIeyKdzvjj8BrBODdXlGOwSBxQpdW444Y_p-ChIQminA/exec';
+
+    // Automatisch de starttijd invullen op het huidige moment
+    window.addEventListener('DOMContentLoaded', () => {
+      const nu = new Date();
+      nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
+      document.getElementById('startTijd').value = nu.toISOString().slice(0, 16);
+    });
 
     document.getElementById('taxiForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
       const statusDiv = document.getElementById('status');
       statusDiv.className = '';
-      statusDiv.innerText = 'Bezig met opslaan...';
+      statusDiv.innerText = 'Gegevens verzenden...';
 
       const payload = {
         chauffeur: document.getElementById('chauffeur').value,
-        startlocatie: document.getElementById('startlocatie').value,
-        eindlocatie: document.getElementById('eindlocatie').value,
-        afstand: document.getElementById('afstand').value
+        afspraakTijd: document.getElementById('afspraakTijd').value,
+        haaladres: document.getElementById('haaladres').value,
+        startTijd: document.getElementById('startTijd').value
       };
 
       fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors', // Noodzakelijk voor cross-origin Google Apps Script requests
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -118,12 +124,12 @@
       })
       .then(() => {
         statusDiv.className = 'success';
-        statusDiv.innerText = 'Rit succesvol verzonden naar Google Sheets!';
+        statusDiv.innerText = 'Rit succesvol gestart en opgeslagen!';
         document.getElementById('taxiForm').reset();
       })
       .catch(error => {
         statusDiv.className = 'error';
-        statusDiv.innerText = 'Er is een fout opgetreden: ' + error.message;
+        statusDiv.innerText = 'Fout bij verzenden: ' + error.message;
       });
     });
   </script>

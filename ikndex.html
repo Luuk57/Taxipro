@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taxigps App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 500px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #f4f7f6;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #219150;
+    }
+    #status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+
+  <h2>🚕 Taxigps - Rit Invoeren</h2>
+
+  <form id="taxiForm">
+    <div class="form-group">
+      <label for="chauffeur">Chauffeur</label>
+      <input type="text" id="chauffeur" required placeholder="Naam van de chauffeur">
+    </div>
+
+    <div class="form-group">
+      <label for="startlocatie">Startlocatie</label>
+      <input type="text" id="startlocatie" required placeholder="Vertrekadres">
+    </div>
+
+    <div class="form-group">
+      <label for="eindlocatie">Eindlocatie</label>
+      <input type="text" id="eindlocatie" required placeholder="Aankomstadres">
+    </div>
+
+    <div class="form-group">
+      <label for="afstand">Afstand (km)</label>
+      <input type="number" id="afstand" step="0.1" required placeholder="0.0">
+    </div>
+
+    <button type="submit">Rit Opslaan naar Google Sheet</button>
+  </form>
+
+  <div id="status"></div>
+
+  <script>
+    // Jouw gekoppelde Apps Script Web App URL:
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDTZg4LNy6Q6fv50p5MZqEnLHIeyKdzvjj8BrBODdXlGOwSBxQpdW444Y_p-ChIQminA/exec';
+
+    document.getElementById('taxiForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = '';
+      statusDiv.innerText = 'Bezig met opslaan...';
+
+      const payload = {
+        chauffeur: document.getElementById('chauffeur').value,
+        startlocatie: document.getElementById('startlocatie').value,
+        eindlocatie: document.getElementById('eindlocatie').value,
+        afstand: document.getElementById('afstand').value
+      };
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Noodzakelijk voor cross-origin Google Apps Script requests
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        statusDiv.className = 'success';
+        statusDiv.innerText = 'Rit succesvol verzonden naar Google Sheets!';
+        document.getElementById('taxiForm').reset();
+      })
+      .catch(error => {
+        statusDiv.className = 'error';
+        statusDiv.innerText = 'Er is een fout opgetreden: ' + error.message;
+      });
+    });
+  </script>
+
+</body>
+</html>

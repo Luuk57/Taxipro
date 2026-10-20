@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taxigps App - Handmatige Opslag</title>
+  <title>Taxigps App - Start & Stop GPS</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -35,12 +35,11 @@
       border-radius: 4px;
       font-size: 14px;
     }
-    .btn-group {
+    .input-row {
       display: flex;
-      gap: 10px;
+      gap: 5px;
     }
     button {
-      flex: 1;
       color: white;
       border: none;
       padding: 12px;
@@ -51,8 +50,11 @@
     }
     .btn-start { background-color: #2980b9; }
     .btn-start:hover { background-color: #2471a3; }
+
+    .btn-stop { background-color: #d35400; }
+    .btn-stop:hover { background-color: #ba4a00; }
     
-    .btn-save { background-color: #27ae60; }
+    .btn-save { background-color: #27ae60; width: 100%; }
     .btn-save:hover { background-color: #219150; }
 
     #status {
@@ -72,35 +74,43 @@
   <h2>🚕 Taxigps - Rit Beheer</h2>
 
   <form id="taxiForm">
+    <!-- Afspraak Tijd -->
     <div class="form-group">
       <label for="afspraakTijd">Afspraak Datum & Tijd</label>
       <input type="datetime-local" id="afspraakTijd">
     </div>
 
+    <!-- Haaladres + GPS Start Knop -->
     <div class="form-group">
       <label for="haaladres">Haaladres</label>
-      <div style="display: flex; gap: 5px;">
-        <input type="text" id="haaladres" placeholder="Haaladres (of klik Start)">
+      <div class="input-row">
+        <input type="text" id="haaladres" placeholder="Haaladres of gebruik GPS Start">
         <button type="button" class="btn-start" onclick="vulStartGegevens()" style="flex: 0 0 100px; padding: 8px; font-size: 14px;">GPS Start</button>
       </div>
     </div>
 
+    <!-- Start Tijd -->
     <div class="form-group">
       <label for="startTijd">Start Datum & Tijd</label>
       <input type="datetime-local" id="startTijd">
     </div>
 
+    <!-- Breng Adres + GPS Stop Knop -->
     <div class="form-group">
       <label for="brengAdres">Breng Adres</label>
-      <input type="text" id="brengAdres" placeholder="Bestemmingsadres">
+      <div class="input-row">
+        <input type="text" id="brengAdres" placeholder="Bestemming of gebruik GPS Stop">
+        <button type="button" class="btn-stop" onclick="vulStopGegevens()" style="flex: 0 0 100px; padding: 8px; font-size: 14px;">GPS Stop</button>
+      </div>
     </div>
 
+    <!-- Stop Tijd -->
     <div class="form-group">
       <label for="stopTijd">Stop Datum & Tijd</label>
       <input type="datetime-local" id="stopTijd">
     </div>
 
-    <!-- Pas opslaan wanneer de chauffeur hier bewust op klikt -->
+    <!-- Definitieve opslaanknop -->
     <button type="button" class="btn-save" onclick="bewusteOpslaan()">Rit Opslaan naar Google Sheet</button>
   </form>
 
@@ -109,20 +119,18 @@
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDTZg4LNy6Q6fv50p5MZqEnLHIeyKdzvjj8BrBODdXlGOwSBxQpdW444Y_p-ChIQminA/exec';
 
-    // 1. De knop om alleen de startgegevens (GPS en tijd) in te vullen op het scherm, ZONDER op te slaan
+    // 1. Functie voor GPS Start (Haaladres + Starttijd)
     function vulStartGegevens() {
       const statusDiv = document.getElementById('status');
       statusDiv.className = 'info';
-      statusDiv.innerText = 'GPS locatie en starttijd ophalen...';
+      statusDiv.innerText = 'Startlocatie en starttijd ophalen...';
 
-      // Vul starttijd in
       const nu = new Date();
       nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
       document.getElementById('startTijd').value = nu.toISOString().slice(0, 16);
 
-      // Haal GPS op
       if (!navigator.geolocation) {
-        statusDiv.innerText = 'Geen GPS ondersteuning. Vul handmatig in.';
+        statusDiv.innerText = 'Geen GPS ondersteuning beschikbaar.';
         return;
       }
 
@@ -135,20 +143,57 @@
           .then(data => {
             let straatadres = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
             document.getElementById('haaladres').value = straatadres;
-            statusDiv.innerText = 'Startgegevens ingevuld (Nog niet opgeslagen!).';
+            statusDiv.innerText = 'Startgegevens ingevuld (Nog niet opgeslagen).';
           })
           .catch(() => {
             document.getElementById('haaladres').value = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-            statusDiv.innerText = 'Startgegevens ingevuld (Nog niet opgeslagen!).';
+            statusDiv.innerText = 'Startgegevens ingevuld (Nog niet opgeslagen).';
           });
 
       }, function() {
         statusDiv.className = 'error';
-        statusDiv.innerText = 'Kon GPS niet ophalen.';
+        statusDiv.innerText = 'Kon GPS-locatie voor start niet ophalen.';
       }, { enableHighAccuracy: true });
     }
 
-    // 2. De definitieve opslaanknop die pas actie onderneemt als de chauffeur dat wil
+    // 2. Functie voor GPS Stop (Brengadres + Stoptijd) - Exact hetzelfde als Start!
+    function vulStopGegevens() {
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = 'info';
+      statusDiv.innerText = 'Stoplocatie en stoptijd ophalen...';
+
+      const nu = new Date();
+      nu.setMinutes(nu.getMinutes() - nu.getTimezoneOffset());
+      document.getElementById('stopTijd').value = nu.toISOString().slice(0, 16);
+
+      if (!navigator.geolocation) {
+        statusDiv.innerText = 'Geen GPS ondersteuning beschikbaar.';
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`)
+          .then(response => response.json())
+          .then(data => {
+            let straatadres = data.display_name || `Lat: ${lat}, Lon: ${lon}`;
+            document.getElementById('brengAdres').value = straatadres;
+            statusDiv.innerText = 'Stopgegevens ingevuld (Nog niet opgeslagen).';
+          })
+          .catch(() => {
+            document.getElementById('brengAdres').value = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            statusDiv.innerText = 'Stopgegevens ingevuld (Nog niet opgeslagen).';
+          });
+
+      }, function() {
+        statusDiv.className = 'error';
+        statusDiv.innerText = 'Kon GPS-locatie voor stop niet ophalen.';
+      }, { enableHighAccuracy: true });
+    }
+
+    // 3. Definitieve opslaanknop naar Google Sheets
     function bewusteOpslaan() {
       const statusDiv = document.getElementById('status');
       statusDiv.className = '';
@@ -172,7 +217,7 @@
       })
       .then(() => {
         statusDiv.className = 'success';
-        statusDiv.innerText = 'Rit succesvol opgeslagen op verzoek van chauffeur!';
+        statusDiv.innerText = 'Rit succesvol opgeslagen in Google Sheet!';
         document.getElementById('taxiForm').reset();
       })
       .catch(error => {
